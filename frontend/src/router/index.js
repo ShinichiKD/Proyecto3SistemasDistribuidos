@@ -1,10 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import Home from '../components/home.vue';
-import Dev from '../components/dev.vue';
+/* import Home from '../components/home.vue';
+import Dev from '../components/dev.vue'; */
 
 // Definir rutas
 const routes = [
-  {
+  /* {
     path: '/',
     name: 'Home',
     component: Home
@@ -13,7 +13,7 @@ const routes = [
         path: '/dev',
         name: 'Dev',
         component: Dev
-    }
+    } */
 ];
 
 const router = createRouter({
