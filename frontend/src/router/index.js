@@ -1,19 +1,19 @@
 import { createRouter, createWebHistory } from 'vue-router';
-/* import Home from '../components/home.vue';
-import Dev from '../components/dev.vue'; */
+import login from '../components/login.vue'
+import principal from '../components/principal.vue'
 
 // Definir rutas
 const routes = [
-  /* {
+  {
     path: '/',
-    name: 'Home',
-    component: Home
+    name: 'login',
+    component: login
   },
-    {
-        path: '/dev',
-        name: 'Dev',
-        component: Dev
-    } */
+  {
+    path: '/principal',
+    name: 'principal',
+    component: principal
+  },
 ];
 
 const router = createRouter({
