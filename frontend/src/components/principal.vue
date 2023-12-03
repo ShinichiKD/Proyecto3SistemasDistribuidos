@@ -1,8 +1,8 @@
 <template>
     <div class="flex flex-col h-screen w-screen">
         <header class="w-full bg-gray-200 flex justify-between items-center">
-            <h1 class="text-xl font-bold my-3">Mi Aplicación</h1>
-            <v-btn class="mr-4">Notificación</v-btn>
+            <h1 class="text-xl font-bold my-3" v-if="yo">Este soy yo: {{ yo.nombre }}</h1>
+            <v-btn class="mr-4">Notificacion</v-btn>
         </header>
 
         <div class="flex flex-grow overflow-hidden">
@@ -24,8 +24,10 @@
             </div>
             <div class="w-3/5 border"> <!-- Zona Centro -->
                 <div class="flex mt-2">
-                    <h1 class="text-2xl font-black w-4/5 mx-auto mb-5 mt-5" v-if="!modoprivado">Canal de {{ canalSeleccionado.nombre }}</h1>
-                    <h1 class="text-2xl font-black w-4/5 mx-auto mb-5 mt-5" v-else>Canal de {{ canalSeleccionado.nombre }}</h1>
+                    <h1 class="text-2xl font-black w-4/5 mx-auto mb-5 mt-5" v-if="!modoprivado">Canal de {{
+                        canalSeleccionado.nombre }}</h1>
+                    <h1 class="text-2xl font-black w-4/5 mx-auto mb-5 mt-5" v-else>Canal de {{ canalSeleccionado.nombre }}
+                    </h1>
                     <v-btn class="mr-4 relative" @click="limpiarChat">Limpiar</v-btn>
                 </div>
                 <!-- Titulo -->
@@ -33,7 +35,7 @@
                     <!-- Ejemplo de chat de un usuario -->
                     <div class="ml-5" v-for="(mensaje, index) in mensajes" :key="index">
                         <h1 class="flex mt-1">
-                            <p class="font-black">{{ mensaje.usuario }}:</p>{{ mensaje.texto }}
+                            <p class="font-black">{{ mensaje.usuario.nombre }}:</p>{{ mensaje.texto }}
                         </h1>
                     </div>
 
@@ -60,7 +62,7 @@
                             <span class="material-symbols-outlined">
                                 face
                             </span>
-                            <p class="mx-auto">{{ usuario.idx }}</p>
+                            <p class="mx-auto">{{ usuario.username }}</p>
                         </div>
                     </div>
 
@@ -75,7 +77,8 @@ import { io } from "socket.io-client";
 export default {
     data() {
         return {
-            modoprivado:false,
+            token: null,
+            modoprivado: false,
             socket: null,
             mensajes: [],
             usuariosConectados: [],
@@ -98,36 +101,61 @@ export default {
         };
     },
     mounted() {
-        this.socket = io("http://localhost:3000"); // Asegúrate de que la URL sea correcta
-        
+        // Obtener el token
+        let token = localStorage.getItem("usuario")
+        console.log(token);
+        if (token) {
+            token = JSON.parse(token);
+            this.yo= token
+            this.socket = io("http://localhost:3000", {
+                query: {
+                    userID: token._id,
+                    username: token.nombre
+                }
+            });
+        } else {
+            // Manejar la falta del token o redirigir al usuario a la página de inicio de sesión
+            console.error('No token found! Redirecting to login...');
+            // Redirige al usuario o muestra un mensaje de error
+        }
+
         this.socket.on("chat message", (msg) => {
             this.mensajes.push(msg);
         });
 
         this.socket.on("update user list", (users) => {
+            console.log("hola", users);
             this.usuariosConectados = users;
+            // Recorro los usuarios y elimino de la lista de los usuarios el mismo id de mi token
+            this.usuariosConectados.forEach((usuario, index) => {
+            console.log("a-", index)
+            if (usuario.id == token._id) {
+                console.log("hola 2", usuario);
+                this.usuariosConectados.splice(index, 1);
+            }
         });
-
+        });
     },
     methods: {
         seleccionarCanal(canal) {
-            this.modoprivado=false;
+            this.modoprivado = false;
             this.canalSeleccionado = canal;
             this.socket.emit('join channel', canal.id); // Unirse a la sala del canal
         },
         enviarMensaje() {
             // Asegúrate de incluir el canal actual en el mensaje enviado
             this.socket.emit("chat message", {
-                usuario: "NombreUsuario", // Cambia esto por el nombre de usuario real
+                usuario: this.yo, // Cambia esto por el nombre de usuario real
                 texto: this.mensajeActual,
                 canal: this.canalSeleccionado.id // Incluye el canal actual
             });
             this.mensajeActual = "";
         },
         iniciarChatPrivado(usuario) {
-            this.modoprivado=true;
+            console.log(this.socket.id)
+            this.modoprivado = true;
             // Crear un identificador único para la sala privada
-            let roomID = usuario.id < this.socket.id ? `${usuario.id}_${this.socket.id}` : `${this.socket.id}_${usuario.id}`;
+            let roomID = usuario.id < this.yo._id ? `${usuario.id}_${this.yo._id}` : `${this.yo._id}_${usuario.id}`;
             this.socket.emit('join private room', roomID);
             this.canalSeleccionado = { id: roomID, nombre: `Privado con ${usuario.username}` };
             this.mensajes = []; // Limpiar mensajes antiguos

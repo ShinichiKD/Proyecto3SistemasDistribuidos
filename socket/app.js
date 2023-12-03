@@ -27,10 +27,14 @@ const io = new Server(server, {
   },
 });
 let waitingUser = null;
-const connectedUsers = {};
+const connectedUsers =[];
 io.on('connection', (socket) => {
-  console.log('Usuario conectado:', socket.id);
-  connectedUsers[socket.id] = { id: socket.id, username: 'NombreUsuario' };
+  // Obtener userID y username directamente de la query
+  const userID = socket.handshake.query.userID;
+  const username = socket.handshake.query.username;
+
+  console.log('Usuario conectado con ID:', userID, 'Username:', username);
+  connectedUsers[userID] = { id: userID, username: username };
   // Emitir la lista actualizada de usuarios conectados a todos los clientes
   io.emit('update user list', Object.values(connectedUsers));
 
@@ -67,9 +71,12 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
-    console.log('Usuario desconectado:', socket.id);
-    delete connectedUsers[socket.id];
-  });
+    console.log('Usuario desconectado con ID:', userID);
+    // Eliminar el usuario utilizando el userID en lugar del socket.id
+    delete connectedUsers[userID];
+    // Actualizar la lista de usuarios conectados
+    io.emit('update user list', Object.values(connectedUsers));
+});
 });
 
 // Puerto
