@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@mdi/font": "^7.3.67",
     "axios": "^1.6.2",
     "socket.io-client": "^4.7.2",
     "sweetalert2": "^11.10.1",

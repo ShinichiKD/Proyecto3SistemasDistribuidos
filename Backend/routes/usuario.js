@@ -39,5 +39,29 @@ router.post("/login", async (req, res) => {
       res.json(err);
     });
 });
+router.get("/getUsuarios", async (req, res) => {
+  
+  await usuarioSchema
+    .find()
+    .then((result) => {
+      res.json(result);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.json(err);
+    });
+});
+router.put("/updateUsuario", async (req, res) => {
+
+  await usuarioSchema.findOneAndUpdate({_id: req.body._id}, req.body, {new: true})
+  .then((result) => {
+    res.json(result);
+  })
+  .catch((err) => {
+    console.log(err);
+    res.json(err);
+  });
+
+});
 
 module.exports = router;

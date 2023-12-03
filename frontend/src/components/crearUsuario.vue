@@ -2,15 +2,15 @@
     <div class=" w-full h-full flex flex-col items-center">
 
         <div class=" h-[250px] w-[400px] my-auto  ">
-            <h1 class="pl-8 text-4xl ">SISTEMA DE CHAT</h1>
+            <h1 class="pl-8 text-4xl ">Crear usuario</h1>
             <div class="p-8 border-black border-2 rounded-xl">
 
                 <v-form ref="form">
+                    <v-text-field v-model="correo" label="correo" required :rules=correoRules></v-text-field>
                     <v-text-field v-model="usuario" label="nombre de usuario" required :rules=usuarioRules></v-text-field>
+                    <v-select v-model="rol" :items="roles" label="rol" required></v-select>
 
-                    <v-text-field v-model="contra" label="contraseña" required :rules=contraRules></v-text-field>
-
-                    <v-btn @click="login" block class="mt-2">Ingresar</v-btn>
+                    <v-btn :disabled="estadobtn" @click="login" block class="mt-2">Crear</v-btn>
                 </v-form>
             </div>
         </div>
@@ -23,10 +23,17 @@ export default {
 
     data() {
         return {
-            usuario: '',
-            contra: '',
+            usuario: "",
+            correo: "",
+            rol: "Medico",
+            estadobtn: false,
+            roles: ["Medico", "Admision", "Pabellon", "Auxiliar", "Examenes"],
             usuarioRules: [
                 v => !!v || 'Es necesario ingresar un usuario',
+
+            ],
+            correoRules: [
+                v => !!v || 'Es necesario ingresar un usuario', v => /@.+\..+/.test(v) || 'Ingrese un correo electrónico válido'
 
             ],
             contraRules: [
@@ -43,31 +50,25 @@ export default {
             await this.$refs.form.validate().then(async (resp) => {
 
                 if (resp.valid) {
-                    await API.login({ correo: this.usuario, contra: this.contra })
+                    this.estadobtn = true;
+                    await API.addUsuario(
+                        {
+                            correo: this.correo,
+                            nombre: this.usuario,
+                            rol: this.rol,
+                            contra: this.usuario,
+                            tiempodeuso: 0
+                        }
+                    )
                         .then((resp) => {
                             console.log(resp)
-                            if (resp.respuesta) {
-                                localStorage.setItem("usuario", JSON.stringify(resp.usuario));
-                                Swal.fire({
-                                    icon: "success",
-                                    title: "Oops...",
+                            Swal.fire({
+                                icon: "success",
 
+                                text: "Usuario creado con exito"
+                            });
+                            this.estadobtn = false;
 
-                                });
-                                if (resp.usuario.rol == "Administrador") {
-                                    console.log("admin");
-                                    this.$router.push({ name: "admin" });
-                                } else {
-                                    this.$router.push({ name: "principal" });
-                                }
-                            } else {
-                                Swal.fire({
-                                    icon: "error",
-                                    title: "Oops...",
-
-
-                                });
-                            }
 
                         }).catch((err) => {
                             console.log(err);
