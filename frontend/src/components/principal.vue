@@ -9,43 +9,21 @@
             <div class="w-1/5 border overflow-y-auto"> <!-- Zona Izquierda -->
                 <h1 class="text-2xl font-black flex justify-center mb-5 mt-5">Canales</h1>
                 <!-- Canales -->
-                <div class="flex-col">
+                <div class="flex-col" v-for="canal in canales" :key="canal.id">
                     <!-- Canal General -->
                     <div class="mx-auto border-sm rounded-lg p-5 mt-2 w-1/2 hover:bg-gray-200 hover:text-black relative transition duration-300 ease-in-out"
-                        @click="seleccionarCanal('General')">
+                        @click="seleccionarCanal(canal)">
                         <div class="flex">
                             <span class="material-symbols-outlined">
                                 group
                             </span>
-                            <h1 class="mx-auto">General</h1>
-                        </div>
-                    </div>
-
-                    <!-- Canal Auxiliar -->
-                    <div class="mx-auto border-sm rounded-lg p-5 mt-2 w-1/2 hover:bg-gray-200 hover:text-black relative transition duration-300 ease-in-out"
-                        @click="seleccionarCanal('Auxiliar')">
-                        <div class="flex">
-                            <span class="material-symbols-outlined">
-                                group
-                            </span>
-                            <h1 class="mx-auto">Auxiliar</h1>
-                        </div>
-                    </div>
-
-                    <!-- Canal Pabellon -->
-                    <div class="mx-auto border-sm rounded-lg p-5 mt-2 w-1/2 hover:bg-gray-200 hover:text-black relative transition duration-300 ease-in-out"
-                        @click="seleccionarCanal('Pabellon')">
-                        <div class="flex">
-                            <span class="material-symbols-outlined">
-                                group
-                            </span>
-                            <h1 class="mx-auto">Pabellon</h1>
+                            <h1 class="mx-auto">{{ canal.nombre }}</h1>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="w-3/5 border"> <!-- Zona Centro -->
-                <h1 class="text-2xl font-black w-4/5 mx-auto mb-5 mt-5">Canal de {{ canalSeleccionado }}</h1>
+                <h1 class="text-2xl font-black w-4/5 mx-auto mb-5 mt-5">Canal de {{ canalSeleccionado.nombre }}</h1>
                 <!-- Titulo -->
                 <div class="border w-4/5 h-4/5 mx-auto rounded-xl overflow-y-auto"> <!-- Chat de la wea -->
                     <!-- Ejemplo de chat de un usuario -->
@@ -98,6 +76,20 @@ export default {
             usuariosConectados: [],
             canalSeleccionado: "No Seleccionado",
             mensajeActual: "",
+            canales: [
+                {
+                    id: 1,
+                    nombre: "General"
+                },
+                {
+                    id: 2,
+                    nombre: "Auxiliar"
+                },
+                {
+                    id: 3,
+                    nombre: "Pabellon"
+                }
+            ]
         };
     },
     mounted() {
@@ -115,11 +107,14 @@ export default {
     methods: {
         seleccionarCanal(canal) {
             this.canalSeleccionado = canal;
+            this.socket.emit('join channel', canal.id); // Unirse a la sala del canal
         },
         enviarMensaje() {
+            // Asegúrate de incluir el canal actual en el mensaje enviado
             this.socket.emit("chat message", {
                 usuario: "NombreUsuario", // Cambia esto por el nombre de usuario real
-                texto: this.mensajeActual
+                texto: this.mensajeActual,
+                canal: this.canalSeleccionado.id // Incluye el canal actual
             });
             this.mensajeActual = "";
         }

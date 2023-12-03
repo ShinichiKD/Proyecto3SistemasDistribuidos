@@ -30,10 +30,10 @@ let waitingUser = null;
 const connectedUsers = {};
 io.on('connection', (socket) => {
   console.log('Usuario conectado:', socket.id);
-  connectedUsers[socket.id] = { id: socket.id, username: 'NombreUsuario' }; 
+  connectedUsers[socket.id] = { id: socket.id, username: 'NombreUsuario' };
   // Emitir la lista actualizada de usuarios conectados a todos los clientes
   io.emit('update user list', Object.values(connectedUsers));
-  
+
 
   if (waitingUser) {
     // Si hay un usuario esperando, agrégalo a la misma sala
@@ -47,22 +47,22 @@ io.on('connection', (socket) => {
     waitingUser = socket;
   }
 
-  socket.on('chat message', (msg) => {
-    const room = Array.from(socket.rooms)[1];
-    io.to(room).emit('chat message', msg);
-    console.log('message:', msg);
+  // Un usuario se une a un canal específico
+  socket.on('join channel', (channel) => {
+    socket.join(channel);
+    console.log(`Usuario ${socket.id} se ha unido al canal: ${channel}`);
   });
 
-  socket.on('user connect', (user) => {
-    const room = Array.from(socket.rooms)[1];
-    io.to(room).emit('user connect', user);
-    console.log('user:', user);
+  // Manejar mensaje de chat
+  socket.on('chat message', (msg) => {
+    const room = msg.canal;
+    io.to(room).emit('chat message', msg);
+    console.log('message:', msg);
   });
 
   socket.on('disconnect', () => {
     console.log('Usuario desconectado:', socket.id);
     delete connectedUsers[socket.id];
-    io.emit('update user list', Object.values(connectedUsers));
   });
 });
 
