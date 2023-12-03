@@ -23,7 +23,11 @@
                 </div>
             </div>
             <div class="w-3/5 border"> <!-- Zona Centro -->
-                <h1 class="text-2xl font-black w-4/5 mx-auto mb-5 mt-5">Canal de {{ canalSeleccionado.nombre }}</h1>
+                <div class="flex mt-2">
+                    <h1 class="text-2xl font-black w-4/5 mx-auto mb-5 mt-5" v-if="!modoprivado">Canal de {{ canalSeleccionado.nombre }}</h1>
+                    <h1 class="text-2xl font-black w-4/5 mx-auto mb-5 mt-5" v-else>Canal de {{ canalSeleccionado.nombre }}</h1>
+                    <v-btn class="mr-4 relative" @click="limpiarChat">Limpiar</v-btn>
+                </div>
                 <!-- Titulo -->
                 <div class="border w-4/5 h-4/5 mx-auto rounded-xl overflow-y-auto"> <!-- Chat de la wea -->
                     <!-- Ejemplo de chat de un usuario -->
@@ -52,11 +56,11 @@
                     <!-- Usuarios -->
                     <div class="mx-auto border-sm rounded-lg p-5 mt-2 w-1/2 hover:bg-gray-200 hover:text-black relative transition duration-300 ease-in-out"
                         v-for="(usuario, index) in usuariosConectados" :key="index">
-                        <div class="flex">
+                        <div class="flex" @click="iniciarChatPrivado(usuario)">
                             <span class="material-symbols-outlined">
                                 face
                             </span>
-                            <p class="mx-auto">{{ usuario.username }}</p>
+                            <p class="mx-auto">{{ usuario.idx }}</p>
                         </div>
                     </div>
 
@@ -71,6 +75,7 @@ import { io } from "socket.io-client";
 export default {
     data() {
         return {
+            modoprivado:false,
             socket: null,
             mensajes: [],
             usuariosConectados: [],
@@ -106,6 +111,7 @@ export default {
     },
     methods: {
         seleccionarCanal(canal) {
+            this.modoprivado=false;
             this.canalSeleccionado = canal;
             this.socket.emit('join channel', canal.id); // Unirse a la sala del canal
         },
@@ -117,6 +123,17 @@ export default {
                 canal: this.canalSeleccionado.id // Incluye el canal actual
             });
             this.mensajeActual = "";
+        },
+        iniciarChatPrivado(usuario) {
+            this.modoprivado=true;
+            // Crear un identificador único para la sala privada
+            let roomID = usuario.id < this.socket.id ? `${usuario.id}_${this.socket.id}` : `${this.socket.id}_${usuario.id}`;
+            this.socket.emit('join private room', roomID);
+            this.canalSeleccionado = { id: roomID, nombre: `Privado con ${usuario.username}` };
+            this.mensajes = []; // Limpiar mensajes antiguos
+        },
+        limpiarChat() {
+            this.mensajes = [];
         }
 
     }

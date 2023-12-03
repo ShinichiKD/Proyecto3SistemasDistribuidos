@@ -53,6 +53,12 @@ io.on('connection', (socket) => {
     console.log(`Usuario ${socket.id} se ha unido al canal: ${channel}`);
   });
 
+  // Unirse a una sala privada
+  socket.on('join private room', (roomID) => {
+    socket.join(roomID);
+    console.log(`Usuario ${socket.id} se ha unido a la sala privada: ${roomID}`);
+  });
+
   // Manejar mensaje de chat
   socket.on('chat message', (msg) => {
     const room = msg.canal;
