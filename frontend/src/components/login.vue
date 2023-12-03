@@ -10,13 +10,15 @@
 
                     <v-text-field v-model="contra" label="contraseña" required :rules=contraRules></v-text-field>
 
-                    <v-btn type="submit" @click="login" block class="mt-2">Ingresar</v-btn>
+                    <v-btn @click="login" block class="mt-2">Ingresar</v-btn>
                 </v-form>
             </div>
         </div>
     </div>
 </template>
 <script>
+import API from '../api.js';
+import Swal from 'sweetalert2'
 export default {
 
     data() {
@@ -33,22 +35,54 @@ export default {
             ]
         };
     },
-    mounted(){
-        
+    mounted() {
+
     },
     methods: {
         async login() {
-            await this.$refs.form.validate().then( (valid) => {
-                if (valid) {
-                    
-                }else{
-                    
+            await this.$refs.form.validate().then(async (resp) => {
+
+                if (resp.valid) {
+                    await API.login({ correo: this.usuario, contra: this.contra })
+                        .then((resp) => {
+                            console.log(resp)
+                            if (resp.respuesta) {
+                                localStorage.setItem("usuario", JSON.stringify(resp.usuario));
+                                Swal.fire({
+                                    icon: "success",
+                                    title: "Oops...",
+
+
+                                });
+                                this.$router.push({ name: "principal" });
+                            } else {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Oops...",
+
+
+                                });
+                            }
+
+                        }).catch((err) => {
+                            console.log(err);
+                        });
+
+
+                    console.log("valido");
+                } else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+
+
+                    });
                 }
             }).catch((err) => {
                 console.log(err);
             });
 
-           
+
         }
     }
 
