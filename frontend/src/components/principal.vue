@@ -102,7 +102,7 @@ export default {
     },
     mounted() {
         this.socket = io("http://localhost:3000"); // Asegúrate de que la URL sea correcta
-
+        
         this.socket.on("chat message", (msg) => {
             this.mensajes.push(msg);
         });
