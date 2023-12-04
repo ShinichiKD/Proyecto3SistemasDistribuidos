@@ -34,9 +34,12 @@
                 <div class="border w-4/5 h-4/5 mx-auto rounded-xl overflow-y-auto"> <!-- Chat de la wea -->
                     <!-- Ejemplo de chat de un usuario -->
                     <div class="ml-5" v-for="(mensaje, index) in mensajes" :key="index">
-                        <h1 class="flex mt-1">
-                            <p class="font-black">{{ mensaje.usuario.nombre }}:</p>{{ mensaje.texto }}
-                        </h1>
+
+                        <div class="flex">
+                            <p class="font-black">{{ mensaje.usuario.nombre }}:</p>
+                            <span :class="['flex', 'mt', `text-${color}`, `font-${bold ? 'bold' : ''}`]">{{ mensaje.texto }}</span>
+                        </div>
+
                     </div>
 
                 </div>
@@ -80,6 +83,8 @@ export default {
             token: null,
             modoprivado: false,
             socket: null,
+            color: "red",
+            bold:false,
             mensajes: [],
             usuariosConectados: [],
             canalSeleccionado: "No Seleccionado",
@@ -106,7 +111,7 @@ export default {
         console.log(token);
         if (token) {
             token = JSON.parse(token);
-            this.yo= token
+            this.yo = token
             this.socket = io("http://localhost:3000", {
                 query: {
                     userID: token._id,
@@ -128,12 +133,12 @@ export default {
             this.usuariosConectados = users;
             // Recorro los usuarios y elimino de la lista de los usuarios el mismo id de mi token
             this.usuariosConectados.forEach((usuario, index) => {
-            console.log("a-", index)
-            if (usuario.id == token._id) {
-                console.log("hola 2", usuario);
-                this.usuariosConectados.splice(index, 1);
-            }
-        });
+                console.log("a-", index)
+                if (usuario.id == token._id) {
+                    console.log("hola 2", usuario);
+                    this.usuariosConectados.splice(index, 1);
+                }
+            });
         });
     },
     methods: {

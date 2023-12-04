@@ -16,6 +16,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Middleware para Vue.js router modo history
 const history = require('connect-history-api-fallback');
+const { emit } = require('process');
 app.use(history());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -69,7 +70,9 @@ io.on('connection', (socket) => {
     io.to(room).emit('chat message', msg);
     console.log('message:', msg);
   });
-
+  socket.on("emergercia", (msg) => {
+    io.emit('emergercia', msg);
+  });
   socket.on('disconnect', () => {
     console.log('Usuario desconectado con ID:', userID);
     // Eliminar el usuario utilizando el userID en lugar del socket.id
