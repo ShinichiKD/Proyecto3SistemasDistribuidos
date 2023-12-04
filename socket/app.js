@@ -70,9 +70,12 @@ io.on('connection', (socket) => {
     io.to(room).emit('chat message', msg);
     console.log('message:', msg);
   });
-  socket.on("emergercia", (msg) => {
-    io.emit('emergercia', msg);
-  });
+  // Manejar mensaje de broadcast
+socket.on('emergencia', (msg) => {
+  io.emit('emergencia', msg);
+  console.log('Mensaje de emergencai:', msg);
+});
+
   socket.on('disconnect', () => {
     console.log('Usuario desconectado con ID:', userID);
     // Eliminar el usuario utilizando el userID en lugar del socket.id

@@ -34,14 +34,13 @@
                 <div class="border w-4/5 h-4/5 mx-auto rounded-xl overflow-y-auto"> <!-- Chat de la wea -->
                     <!-- Ejemplo de chat de un usuario -->
                     <div class="ml-5" v-for="(mensaje, index) in mensajes" :key="index">
-
                         <div class="flex">
                             <p class="font-black">{{ mensaje.usuario.nombre }}:</p>
-                            <span :class="['flex', 'mt', `text-${color}`, `font-${bold ? 'bold' : ''}`]">{{ mensaje.texto }}</span>
+                            <span
+                                :class="['flex', 'mt', `text-${mensaje.esEmergencia ? 'red' : 'black'}`, `font-${mensaje.esEmergencia ? 'bold' : ''}`]">{{
+                                    mensaje.texto }}</span>
                         </div>
-
                     </div>
-
                 </div>
                 <!-- Input para enviar mensaje y el boton para enviar -->
                 <div class="flex w-4/5 mx-auto mt-2">
@@ -84,7 +83,7 @@ export default {
             modoprivado: false,
             socket: null,
             color: "red",
-            bold:false,
+            bold: false,
             mensajes: [],
             usuariosConectados: [],
             canalSeleccionado: "No Seleccionado",
@@ -127,6 +126,15 @@ export default {
         this.socket.on("chat message", (msg) => {
             this.mensajes.push(msg);
         });
+
+        this.socket.on('emergencia', (msg) => {
+            this.mensajes.push({
+                usuario: { nombre: '¡EMERGENCIA!' },
+                texto: msg,
+                esEmergencia: true
+            });
+        });
+
 
         this.socket.on("update user list", (users) => {
             console.log("hola", users);
