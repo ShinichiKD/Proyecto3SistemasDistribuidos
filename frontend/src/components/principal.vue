@@ -1,10 +1,21 @@
 <template>
     <div class="flex flex-col h-screen w-screen">
-        <header class="w-full bg-gray-200 flex justify-between items-center">
+        <header class="w-full bg-gray-200 flex justify-between">
             <h1 class="text-xl font-bold my-3" v-if="token">Este soy yo: {{ token.nombre }}</h1>
-            <v-btn class="mr-4">Notificacion</v-btn>
-        </header>
+            <div class="my-3">
+                <v-btn class="mr-4" @click="mensajeria = true">Mensajeria
+                    <span class="material-symbols-outlined">
+                        message
+                    </span>
+                </v-btn>
+                <v-btn class="mr-4" @click="correo = true">Correo
+                    <span class="material-symbols-outlined">
+                        email
+                    </span>
+                </v-btn>
+            </div>
 
+        </header>
         <div class="flex flex-grow overflow-hidden">
             <div class="w-1/5 border overflow-y-auto"> <!-- Zona Izquierda -->
                 <h1 class="text-2xl font-black flex justify-center mb-5 mt-5">Canales</h1>
@@ -35,14 +46,13 @@
                     <!-- Ejemplo de chat de un usuario `text-${element.esEmergencia ? 'colortexto' : 'black'}` -->
                     <div class="ml-5" v-for="(element, index) in mensajes" :key="index">
                         <div class="flex">
-                          
                             <p class="font-black" v-if="element.nombreemisor == token.nombre">yo:</p>
                             <p class="font-black" v-else>{{ element.nombreemisor }}:</p>
                             <span :style="{ color: element.color }" :class="['flex', 'mt', `font-${element.negrita ? 'bold' : ''}`,
                                 `${element.italica ? 'italic' : ''}`,
                                 `${element.subrayado ? 'underline' : ''}`,
-                               
-                                 ]">{{ element.mensaje }} 
+
+                            ]">{{ element.mensaje }}
                             </span>
                         </div>
                     </div>
@@ -50,9 +60,9 @@
                 </div>
                 <div class=" h-[5vh]  w-4/5 mx-auto flex gap-4">
                     <v-btn class="h-full" @click="dialog = true">
-                        Menu color 
+                        Menu color
                         <div :style="{ background: colortexto }" class="h-[20px] w-[20px]">
-                            
+
                         </div>
                     </v-btn>
                     <v-checkbox v-model="italica" label="Italica"></v-checkbox>
@@ -76,9 +86,10 @@
                 <h1 class="text-2xl font-black flex justify-center mb-5 mt-5">Usuarios</h1>
                 <div class="flex-col ">
                     <!-- Usuarios -->
-                    <div @click="iniciarChatPrivado(usuario)" class="mx-auto border-sm rounded-lg p-5 mt-2 w-1/2 hover:bg-gray-200 hover:text-black relative transition duration-300 ease-in-out"
+                    <div @click="iniciarChatPrivado(usuario)"
+                        class="mx-auto border-sm rounded-lg p-5 mt-2 w-1/2 hover:bg-gray-200 hover:text-black relative transition duration-300 ease-in-out"
                         v-for="(usuario, index) in usuariosConectados" :key="index">
-                        <div class="flex" >
+                        <div class="flex">
                             <span class="material-symbols-outlined">
                                 face
                             </span>
@@ -92,12 +103,45 @@
         <v-dialog v-model="dialog" width="auto">
             <v-card>
                 <v-card-text>
-                    <v-color-picker  hide-sliders   v-model="colortexto" :modes="['hexa']"></v-color-picker>
-                   
+                    <v-color-picker hide-sliders v-model="colortexto" :modes="['hexa']"></v-color-picker>
+
                 </v-card-text>
                 <v-card-actions>
                     <v-btn color="primary" block @click="dialog = false">volver</v-btn>
                 </v-card-actions>
+            </v-card>
+        </v-dialog>
+        <v-dialog v-model="mensajeria">
+            <v-card class="w-1/2 h-[500px] mx-auto overflow-y-auto">
+                <div class="flex flex-col">
+                    <h1 class="mx-auto mt-5 text-2xl font-bold">Mensajeria</h1>
+                    <v-select v-model="mensajeria_seleccionada" class="mt-2 mx-5" :items="items"
+                        label="Selecciona el canal"></v-select>
+                    <v-textarea v-model="mensajeria_texto" class="mt-2 mx-5" label="Escribe tu mensaje aqui"
+                        hide-details="auto"></v-textarea>
+                    <div class="flex justify-between">
+                        <v-btn class="mt-5 ml-5 mb-5" @click="mensajeria = false">
+                            <span class="material-symbols-outlined">
+                                arrow_back
+                            </span>
+                            Volver
+                        </v-btn>
+                        <v-btn class="mt-5 mr-5 mb-5" @click="enviarMensajeriaCanal">
+                            Enviar mensaje
+                            <span class="material-symbols-outlined">
+                                send
+                            </span>
+                        </v-btn>
+                    </div>
+                    <div class="mx-5 flex">
+                        <span class="material-symbols-outlined mr-5">
+                            info
+                        </span>
+                        <p>Recuerda: Lorem ipsum dolor sit amet, consectetur adipisicing elit. Assumenda veritatis culpa architecto
+                            autem facere deleniti eveniet reiciendis enim delectus deserunt amet, fuga cupiditate labore
+                            exercitationem sunt impedit. Quasi, excepturi cupiditate!</p>
+                    </div>
+                </div>
             </v-card>
         </v-dialog>
     </div>
@@ -110,7 +154,9 @@ export default {
     data() {
         return {
             yo: null,
+            correo: false,
             token: null,
+            esMedico: false,
             modoprivado: false,
             socket: null,
             color: "red",
@@ -126,8 +172,11 @@ export default {
                 id: 1,
                 nombre: "General"
             },
-
+            mensajeria: false,
             mensajeActual: "",
+            items: ["Pabellon", "Admision", "Auxiliar", "Examen"],
+            mensajeria_seleccionada: null,
+            mensajeria_texto: null,
             canales: [
                 {
                     id: 1,
@@ -160,11 +209,14 @@ export default {
         // Obtener el token
         this.seleccionarCanal(this.canales[0])
         this.token = localStorage.getItem("usuario")
-        console.log(this.token)
 
         if (this.token) {
             this.token = JSON.parse(this.token);
-            console.log(this.token)
+            if (this.token.rol == "Medico") {
+                this.esMedico = true
+            } else {
+                this.esMedico = false
+            }
 
             this.socket = io("http://localhost:3000", {
                 query: {
@@ -179,7 +231,7 @@ export default {
         }
 
         this.socket.on("chat message", (msg) => {
-           
+
             this.mensajes.push(msg.mensaje);
 
             console.log(msg)
@@ -210,11 +262,11 @@ export default {
     methods: {
         async seleccionarCanal(canal) {
             console.log(canal)
-            this.mensajes =[]
+            this.mensajes = []
             await API.getChat(canal.nombre)
                 .then((res) => {
                     console.log(res)
-                    if(res!=null){
+                    if (res != null) {
                         this.mensajes = res.mensaje
                     }
 
@@ -248,7 +300,7 @@ export default {
                 await API.addMensaje(mensaje)
                     .then((res) => {
                         console.log(res)
-                        
+
                     })
                     .catch((err) => {
                         console.log(err)
@@ -288,14 +340,40 @@ export default {
             await API.getChatPrivados(usuario.id, this.token._id)
                 .then((res) => {
                     console.log(res)
-                    if(res!=null){
+                    if (res != null) {
                         this.mensajes = res
                     }
                 })
                 .catch((err) => {
                     console.log(err)
                 })
-            
+
+        },
+        async enviarMensajeriaCanal() {
+            if (this.mensajeria_seleccionada != null && this.mensajeria_texto != null) {
+                var posicion = this.obtenerPosicionEnCanales(this.mensajeria_seleccionada, this.canales)
+                console.log("Posicion", posicion)
+                var canalMensajeria = {
+                    id: posicion,
+                    nombre: this.mensajeria_seleccionada
+                }
+                await this.seleccionarCanal(canalMensajeria)
+                this.mensajeActual = this.mensajeria_texto
+                await this.enviarMensaje()
+                this.mensajeria = false
+                this.mensajeria_texto = null
+                this.seleccionarCanal(this.canales[0])
+            }
+        },
+        obtenerPosicionEnCanales(nombre, listaCanales) {
+            var posicion = -1;
+            for (var i = 0; i < listaCanales.length; i++) {
+                if (listaCanales[i].nombre === nombre) {
+                    posicion = i;
+                    break;
+                }
+            }
+            return posicion;
         },
         limpiarChat() {
             this.mensajes = [];
