@@ -38,5 +38,36 @@ export default class API {
       return error.response.data;
     }
   }
-  
+  static async addMensaje(data) {
+    try {
+      const res = await axios.post(url + "addMensaje", data);
+      return res.data;
+    } catch (error) {
+      return error.response.data;
+    }
+  }
+  static async addmensajetochat(data) {
+    try {
+      const res = await axios.post(url + "addmensajetochat", data);
+      return res.data;
+    } catch (error) {
+      return error.response.data;
+    }
+  }
+  static async getChat(tipo) {
+    try {
+      const res = await axios.get(url + `getchat/`+tipo);
+      return res.data;
+    } catch (error) {
+      return error.response.data;
+    }
+  }
+  static async getChatPrivados(id1,id2) { 
+    try {
+      const res = await axios.get(url + `getchat/`+id1+`/`+id2);
+      return res.data;
+    } catch (error) {
+      return error.response.data;
+    }
+  }
 }

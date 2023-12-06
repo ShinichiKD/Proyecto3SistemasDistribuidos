@@ -35,14 +35,13 @@
                     <!-- Ejemplo de chat de un usuario `text-${element.esEmergencia ? 'colortexto' : 'black'}` -->
                     <div class="ml-5" v-for="(element, index) in mensajes" :key="index">
                         <div class="flex">
-                            <p class="font-black" v-if="element.mensaje.nombreemisor==token.nombre">yo:</p>
-                            <p class="font-black" v-else>{{ element.mensaje.nombreemisor }}:</p>
-                            <span
-                                :class="['flex', 'mt', `font-${element.mensaje.negrita ? 'bold' : ''}`,
-                                `${element.mensaje.italica ? 'italic' : ''}`,
-                                `${element.mensaje.subrayado ? 'underline' : ''}`
-                                ]">{{
-                                    element.mensaje.mensaje }}</span>
+                          
+                            <p class="font-black" v-if="element.nombreemisor == token.nombre">yo:</p>
+                            <p class="font-black" v-else>{{ element.nombreemisor }}:</p>
+                            <span :class="['flex', 'mt', `font-${element.negrita ? 'bold' : ''}`,
+                                `${element.italica ? 'italic' : ''}`,
+                                `${element.subrayado ? 'underline' : ''}`]">{{ element.mensaje }}
+                            </span>
                         </div>
                     </div>
 
@@ -72,9 +71,9 @@
                 <h1 class="text-2xl font-black flex justify-center mb-5 mt-5">Usuarios</h1>
                 <div class="flex-col ">
                     <!-- Usuarios -->
-                    <div class="mx-auto border-sm rounded-lg p-5 mt-2 w-1/2 hover:bg-gray-200 hover:text-black relative transition duration-300 ease-in-out"
+                    <div @click="iniciarChatPrivado(usuario)" class="mx-auto border-sm rounded-lg p-5 mt-2 w-1/2 hover:bg-gray-200 hover:text-black relative transition duration-300 ease-in-out"
                         v-for="(usuario, index) in usuariosConectados" :key="index">
-                        <div class="flex" @click="iniciarChatPrivado(usuario)">
+                        <div class="flex" >
                             <span class="material-symbols-outlined">
                                 face
                             </span>
@@ -99,6 +98,7 @@
 </template>
 <script>
 import { io } from "socket.io-client";
+import API from "../api";
 
 export default {
     data() {
@@ -120,7 +120,7 @@ export default {
                 id: 1,
                 nombre: "General"
             },
-            
+
             mensajeActual: "",
             canales: [
                 {
@@ -140,14 +140,14 @@ export default {
     },
     mounted() {
         // Obtener el token
-       
+
         this.token = localStorage.getItem("usuario")
         console.log(this.token)
-        
+
         if (this.token) {
             this.token = JSON.parse(this.token);
             console.log(this.token)
-            
+
             this.socket = io("http://localhost:3000", {
                 query: {
                     userID: this.token._id,
@@ -161,8 +161,9 @@ export default {
         }
 
         this.socket.on("chat message", (msg) => {
-            this.mensajes.push(msg);
-            
+           
+            this.mensajes.push(msg.mensaje);
+
             console.log(msg)
         });
 
@@ -189,31 +190,67 @@ export default {
         });
     },
     methods: {
-        seleccionarCanal(canal) {
+        async seleccionarCanal(canal) {
+            console.log(canal)
+            this.mensajes =[]
+            await API.getChat(canal.nombre)
+                .then((res) => {
+                    console.log(res)
+                    if(res!=null){
+                        this.mensajes = res.mensaje
+                    }
+
+
+                })
+                .catch((err) => {
+                    console.log(err)
+                })
             this.modoprivado = false;
             this.canalSeleccionado = canal;
             this.socket.emit('join channel', canal.id); // Unirse a la sala del canal
         },
-        enviarMensaje() {
+        async enviarMensaje() {
             // Asegúrate de incluir el canal actual en el mensaje enviado
-            console.log(this.usuarioSeleccionado)
-            console.log(Date.now())
+
+
             const mensaje = {
                 participantes: [],
                 mensaje: this.mensajeActual,
-                fecha: Date.now(),
+
                 nombreemisor: this.token.nombre,
                 color: this.colortexto,
                 italica: this.italica,
                 negrita: this.negrita,
                 subrayado: this.subrayado,
             }
-            if(this.modoprivado){
-                mensaje.participantes.push( this.token._id)
+
+            if (this.modoprivado) {
+                mensaje.participantes.push(this.token._id)
                 mensaje.participantes.push(this.usuarioSeleccionado)
+                await API.addMensaje(mensaje)
+                    .then((res) => {
+                        console.log(res)
+                        
+                    })
+                    .catch((err) => {
+                        console.log(err)
+                    })
+
+            } else {
+
+                await API.addmensajetochat({
+                    mensaje: mensaje,
+                    tipo: this.canalSeleccionado.nombre
+                })
+                    .then((res) => {
+                        console.log(res)
+                    })
+                    .catch((err) => {
+                        console.log(err)
+                    })
             }
-            
-            console.log(mensaje)
+
+
 
             this.socket.emit("chat message", {
                 mensaje: mensaje,
@@ -221,16 +258,26 @@ export default {
             });
             this.mensajeActual = "";
         },
-        iniciarChatPrivado(usuario) {
+        async iniciarChatPrivado(usuario) {
             console.log(usuario)
             console.log(this.socket.id)
             this.modoprivado = true;
             this.usuarioSeleccionado = usuario.id;
             // Crear un identificador único para la sala privada
-            let roomID = usuario.id <  this.token._id ? `${usuario.id}_${this.token._id}` : `${this.token._id}_${usuario.id}`;
+            let roomID = usuario.id < this.token._id ? `${usuario.id}_${this.token._id}` : `${this.token._id}_${usuario.id}`;
             this.socket.emit('join private room', roomID);
             this.canalSeleccionado = { id: roomID, nombre: `Privado con ${usuario.username}` };
-            this.mensajes = []; // Limpiar mensajes antiguos
+            await API.getChatPrivados(usuario.id, this.token._id)
+                .then((res) => {
+                    console.log(res)
+                    if(res!=null){
+                        this.mensajes = res
+                    }
+                })
+                .catch((err) => {
+                    console.log(err)
+                })
+            
         },
         limpiarChat() {
             this.mensajes = [];
