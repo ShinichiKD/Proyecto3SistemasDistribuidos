@@ -38,9 +38,11 @@
                           
                             <p class="font-black" v-if="element.nombreemisor == token.nombre">yo:</p>
                             <p class="font-black" v-else>{{ element.nombreemisor }}:</p>
-                            <span :class="['flex', 'mt', `font-${element.negrita ? 'bold' : ''}`,
+                            <span :style="{ color: element.color }" :class="['flex', 'mt', `font-${element.negrita ? 'bold' : ''}`,
                                 `${element.italica ? 'italic' : ''}`,
-                                `${element.subrayado ? 'underline' : ''}`]">{{ element.mensaje }}
+                                `${element.subrayado ? 'underline' : ''}`,
+                               
+                                 ]">{{ element.mensaje }} 
                             </span>
                         </div>
                     </div>
@@ -48,7 +50,10 @@
                 </div>
                 <div class=" h-[5vh]  w-4/5 mx-auto flex gap-4">
                     <v-btn class="h-full" @click="dialog = true">
-                        Menu color
+                        Menu color 
+                        <div :style="{ background: colortexto }" class="h-[20px] w-[20px]">
+                            
+                        </div>
                     </v-btn>
                     <v-checkbox v-model="italica" label="Italica"></v-checkbox>
                     <v-checkbox v-model="negrita" label="Negrita"></v-checkbox>
@@ -87,7 +92,8 @@
         <v-dialog v-model="dialog" width="auto">
             <v-card>
                 <v-card-text>
-                    <v-color-picker v-model="colortexto" :modes="['hexa']"></v-color-picker>
+                    <v-color-picker  hide-sliders   v-model="colortexto" :modes="['hexa']"></v-color-picker>
+                   
                 </v-card-text>
                 <v-card-actions>
                     <v-btn color="primary" block @click="dialog = false">volver</v-btn>
@@ -129,18 +135,30 @@ export default {
                 },
                 {
                     id: 2,
-                    nombre: "Auxiliar"
+                    nombre: "Medico"
                 },
                 {
                     id: 3,
                     nombre: "Pabellon"
+                },
+                {
+                    id: 4,
+                    nombre: "Admision"
+                },
+                {
+                    id: 5,
+                    nombre: "Auxiliar"
+                },
+                {
+                    id: 6,
+                    nombre: "Examen"
                 }
             ]
         };
     },
     mounted() {
         // Obtener el token
-
+        this.seleccionarCanal(this.canales[0])
         this.token = localStorage.getItem("usuario")
         console.log(this.token)
 
