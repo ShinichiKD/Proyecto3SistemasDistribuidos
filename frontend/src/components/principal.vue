@@ -9,8 +9,10 @@
                 <h1 class="text-xl font-bold my-3" v-if="token"> {{ token.nombre }}</h1>
             </div>
             <div class="my-3 flex">
-                <div class="mr-4 bg-[#9D23FA] w-[200px] h-[40px] flex items-center place-content-center rounded-md hover:bg-[#7282FA] transition-colors" @click="correo = true">
+                <div class="mr-4 bg-[#9D23FA] w-[200px] h-[40px] flex items-center place-content-center rounded-md hover:bg-[#7282FA] transition-colors gap-4" @click="correo = true">
+                    
                     <div><p>Correo</p></div>
+                    <span class="mdi mdi-email-arrow-left mdi-24px"></span>
                     <v-menu activator="parent">
                         <div class="bg-white rounded border mt-1 w-[250px]">
                             <h1 class="flex justify-center mt-5 text-2xl"> Notificaciones </h1>
@@ -46,7 +48,7 @@
                         </div>
                     </v-menu>
                 </div>
-                <div class="mr-4 bg-[#9D23FA] w-[200px] h-[40px] flex items-center place-content-center rounded-md hover:bg-[#7282FA] transition-colors" @click="mensajeria = true" v-if="!esAuxiliar">Mensajeria
+                <div class="mr-4 bg-[#9D23FA] w-[200px] h-[40px] flex items-center place-content-center rounded-md hover:bg-[#7282FA] transition-colors gap-4" @click="mensajeria = true" v-if="!esAuxiliar">Mensajeria
                     <span class="material-symbols-outlined">
                         message
                     </span>
