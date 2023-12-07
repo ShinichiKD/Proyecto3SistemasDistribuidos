@@ -3,14 +3,44 @@
         <header class="w-full bg-gray-200 flex justify-between">
             <h1 class="text-xl font-bold my-3" v-if="token">Este soy yo: {{ token.nombre }}</h1>
             <div class="my-3">
-                <v-btn class="mr-4" @click="mensajeria = true">Mensajeria
+                <v-btn class="mr-4" @click="correo = true">Correo
+                    <v-menu activator="parent">
+                        <div class="bg-white rounded border mt-1 w-[250px]">
+                            <h1 class="flex justify-center mt-5 text-2xl"> Notificaciones </h1>
+                            <div class="ml-5" v-for="(element, index) in notificacion" :key="index">
+                                <div class="p-5 border mx-5 my-5 rounded-xl"
+                                    v-if="element.escorreo == true && token.nombre == element.nombreemisor && element.aceptado == null">
+                                    <h1>Has enviado una peticion: {{ element.mensaje }}</h1>
+                                </div>
+                                <div class="p-5 border mx-5 my-5 rounded-xl"
+                                    v-if="element.escorreo == true && token.nombre == element.nombreemisor && element.aceptado != null">
+                                    <h1 v-if="element.aceptado">Tu peticion: {{ element.mensaje }}, ha sido aceptada</h1>
+                                    <h1 v-else>Tu peticion: {{ element.mensaje }}, ha sido rechazada</h1>
+                                </div>
+                                <div class="p-5 border mx-5 my-5 rounded-xl"
+                                    v-if="element.escorreo == true && token.nombre != element.nombreemisor && token.rol == element.rol && element.aceptado == null">
+                                    <h1>Mensaje de {{ element.nombreemisor }}: {{ element.mensaje }}</h1>
+                                    <div>
+                                        <v-btn size="sm" @click="realizarPeticion(element, true)">
+                                            <span class="material-symbols-outlined">
+                                                done
+                                            </span>
+                                        </v-btn>
+                                        <v-btn size="sm" @click="realizarPeticion(element, false)">
+                                            <span class="material-symbols-outlined">
+                                                close
+                                            </span>
+                                        </v-btn>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </v-menu>
+                </v-btn>
+                <v-btn class="mr-4" @click="mensajeria = true" v-if="!esAuxiliar">Mensajeria
                     <span class="material-symbols-outlined">
                         message
-                    </span>
-                </v-btn>
-                <v-btn class="mr-4" @click="correo = true">Correo
-                    <span class="material-symbols-outlined">
-                        email
                     </span>
                 </v-btn>
             </div>
@@ -45,7 +75,7 @@
                 <div class="border w-4/5 h-[70vh] mx-auto rounded-xl overflow-y-auto"> <!-- Chat de la wea -->
                     <!-- Ejemplo de chat de un usuario `text-${element.esEmergencia ? 'colortexto' : 'black'}` -->
                     <div class="ml-5" v-for="(element, index) in mensajes" :key="index">
-                        <div class="flex">
+                        <div class="flex" v-if="element.escorreo != true">
                             <p class="font-black" v-if="element.nombreemisor == token.nombre">yo:</p>
                             <p class="font-black" v-else>{{ element.nombreemisor }}:</p>
                             <span :style="{ color: element.color }" :class="['flex', 'mt', `font-${element.negrita ? 'bold' : ''}`,
@@ -137,7 +167,8 @@
                         <span class="material-symbols-outlined mr-5">
                             info
                         </span>
-                        <p>Recuerda: Lorem ipsum dolor sit amet, consectetur adipisicing elit. Assumenda veritatis culpa architecto
+                        <p>Recuerda: Lorem ipsum dolor sit amet, consectetur adipisicing elit. Assumenda veritatis culpa
+                            architecto
                             autem facere deleniti eveniet reiciendis enim delectus deserunt amet, fuga cupiditate labore
                             exercitationem sunt impedit. Quasi, excepturi cupiditate!</p>
                     </div>
@@ -156,7 +187,7 @@ export default {
             yo: null,
             correo: false,
             token: null,
-            esMedico: false,
+            esAuxiliar: false,
             modoprivado: false,
             socket: null,
             color: "red",
@@ -174,9 +205,10 @@ export default {
             },
             mensajeria: false,
             mensajeActual: "",
-            items: ["Pabellon", "Admision", "Auxiliar", "Examen"],
+            items: ["Pabellon", "Admision", "Auxiliar", "Examen", "Medico"],
             mensajeria_seleccionada: null,
             mensajeria_texto: null,
+            notificacion: [],
             canales: [
                 {
                     id: 1,
@@ -202,8 +234,11 @@ export default {
                     id: 6,
                     nombre: "Examen"
                 }
-            ]
+            ],
+            tipocorreo: false,
+            isAceptado: null,
         };
+
     },
     mounted() {
         // Obtener el token
@@ -212,10 +247,10 @@ export default {
 
         if (this.token) {
             this.token = JSON.parse(this.token);
-            if (this.token.rol == "Medico") {
-                this.esMedico = true
+            if (this.token.rol == "Auxiliar") {
+                this.esAuxiliar = true
             } else {
-                this.esMedico = false
+                this.esAuxiliar = false
             }
 
             this.socket = io("http://localhost:3000", {
@@ -245,6 +280,21 @@ export default {
             });
         });
 
+        this.socket.on('notificacion', (msg) => {
+            this.notificacion.push(msg)
+        });
+
+        this.socket.on('notificacion eliminada', (msg) => {
+            console.log("recibido notificcaciona  aeliniads", msg) 
+            console.log("todas notificaciones", this.notificacion)
+            const indice = this.notificacion.findIndex(item => item.nombreemisor === msg.nombreemisor && item.mensaje === msg.mensaje && item.aceptado === msg.aceptado && item.rol === msg.rol && item.escorreo === msg.escorreo);
+            console.log("indice", indice)
+            if (indice !== -1) {
+                console.log("eliminado")
+                this.notificacion.splice(indice, 1);
+            }
+        });
+
 
         this.socket.on("update user list", (users) => {
             console.log("hola", users);
@@ -260,6 +310,16 @@ export default {
         });
     },
     methods: {
+        realizarPeticion(notificacion, accion) {
+            this.socket.emit('notificacion eliminada', notificacion);
+            if (accion) {
+                this.isAceptado = true
+            } else {
+                this.isAceptado = false
+            }
+            notificacion.aceptado = this.isAceptado
+            this.socket.emit("notificacion", notificacion);
+        },
         async seleccionarCanal(canal) {
             console.log(canal)
             this.mensajes = []
@@ -279,14 +339,21 @@ export default {
             this.canalSeleccionado = canal;
             this.socket.emit('join channel', canal.id); // Unirse a la sala del canal
         },
+        enviarNotificacion() {
+            let notificacion = {
+                mensaje: this.mensajeria_texto,
+                nombreemisor: this.token.nombre,
+                escorreo: this.tipocorreo,
+                aceptado: this.isAceptado,
+                rol: this.mensajeria_seleccionada,
+            }
+            this.socket.emit("notificacion", notificacion);
+        },
         async enviarMensaje() {
             // Asegúrate de incluir el canal actual en el mensaje enviado
-
-
             const mensaje = {
                 participantes: [],
                 mensaje: this.mensajeActual,
-
                 nombreemisor: this.token.nombre,
                 color: this.colortexto,
                 italica: this.italica,
@@ -359,8 +426,13 @@ export default {
                 }
                 await this.seleccionarCanal(canalMensajeria)
                 this.mensajeActual = this.mensajeria_texto
+                this.isAceptado = null
+                this.tipocorreo = true
                 await this.enviarMensaje()
+                this.enviarNotificacion()
                 this.mensajeria = false
+                this.isAceptado = null
+                this.tipocorreo = false
                 this.mensajeria_texto = null
                 this.seleccionarCanal(this.canales[0])
             }
