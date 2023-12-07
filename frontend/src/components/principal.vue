@@ -1,7 +1,7 @@
 <template>
     <div class="flex flex-col h-screen w-screen">
         <header class="w-full bg-gray-200 flex justify-between items-center">
-            <h1 class="text-xl font-bold my-3" v-if="token">Este soy yo: {{ token.nombre }}</h1>
+            <h1 class="text-xl font-bold my-3" v-if="token">Este soy yo: {{ token.nombre }} {{ token.rol }}</h1>
             <v-btn class="mr-4">Notificacion</v-btn>
         </header>
 
@@ -9,7 +9,7 @@
             <div class="w-1/5 border overflow-y-auto"> <!-- Zona Izquierda -->
                 <h1 class="text-2xl font-black flex justify-center mb-5 mt-5">Canales</h1>
                 <!-- Canales -->
-                <div class="flex-col" v-for="canal in canales" :key="canal.id">
+                <div class="flex-col" v-for="canal in canalesVisibles" :key="canal.id">
                     <!-- Canal General -->
                     <div class="mx-auto border-sm rounded-lg p-5 mt-2 w-1/2 hover:bg-gray-200 hover:text-black relative transition duration-300 ease-in-out"
                         @click="seleccionarCanal(canal)">
@@ -153,7 +153,8 @@ export default {
                     id: 6,
                     nombre: "Examen"
                 }
-            ]
+            ],
+            canalesVisibles:[]
         };
     },
     mounted() {
@@ -165,7 +166,17 @@ export default {
         if (this.token) {
             this.token = JSON.parse(this.token);
             console.log(this.token)
-
+            
+            this.canalesVisibles.push(this.canales[0])
+           
+            this.canales.forEach(element => {
+                if(this.token.rol =="Medico" && element.nombre == "Medico"){
+                    this.canalesVisibles.push(element)
+                }else if(this.token.rol !="Auxiliar" && this.token.role !="Medico" && element.nombre == this.token.rol){
+                    this.canalesVisibles.push(element)
+                }
+            });
+            this.canalesVisibles.push(this.canales[4])
             this.socket = io("http://localhost:3000", {
                 query: {
                     userID: this.token._id,
