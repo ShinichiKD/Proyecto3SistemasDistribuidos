@@ -1,10 +1,16 @@
 <template>
     <div class="flex flex-col h-screen w-screen">
 
-        <header class="w-full bg-gray-200 flex justify-between">
-            <h1 class="text-xl font-bold my-3" v-if="token">Este soy yo: {{ token.nombre }}</h1>
-            <div class="my-3">
-                <v-btn class="mr-4" @click="correo = true">Correo
+        <header class="w-full bg-[#4149FA] text-white flex justify-between">
+            <div class="flex m-4 gap-4 items-center">
+                <v-avatar color="info">
+                    <v-icon icon="mdi-account-circle"></v-icon>
+                </v-avatar>
+                <h1 class="text-xl font-bold my-3" v-if="token"> {{ token.nombre }}</h1>
+            </div>
+            <div class="my-3 flex">
+                <div class="mr-4 bg-[#9D23FA] w-[200px] h-[40px] flex items-center place-content-center rounded-md hover:bg-[#7282FA] transition-colors" @click="correo = true">
+                    <div><p>Correo</p></div>
                     <v-menu activator="parent">
                         <div class="bg-white rounded border mt-1 w-[250px]">
                             <h1 class="flex justify-center mt-5 text-2xl"> Notificaciones </h1>
@@ -39,12 +45,12 @@
                             </div>
                         </div>
                     </v-menu>
-                </v-btn>
-                <v-btn class="mr-4" @click="mensajeria = true" v-if="!esAuxiliar">Mensajeria
+                </div>
+                <div class="mr-4 bg-[#9D23FA] w-[200px] h-[40px] flex items-center place-content-center rounded-md hover:bg-[#7282FA] transition-colors" @click="mensajeria = true" v-if="!esAuxiliar">Mensajeria
                     <span class="material-symbols-outlined">
                         message
                     </span>
-                </v-btn>
+                </div>
             </div>
 
         </header>
@@ -91,11 +97,14 @@
 
                 </div>
                 <div class=" h-[5vh]  w-4/5 mx-auto flex gap-4">
-                    <v-btn class="h-full" @click="dialog = true">
-                        Menu color
-                        <div :style="{ background: colortexto }" class="h-[20px] w-[20px]">
+                    <v-btn class="h-full " @click="dialog = true">
+                        <div class="h-full w-full gap-3 flex ">
+                            <p>Color texto</p>
+                            <div :style="{ background: colortexto }" class="h-[20px] w-[20px]">
 
+                            </div>
                         </div>
+
                     </v-btn>
                     <v-checkbox v-model="italica" label="Italica"></v-checkbox>
                     <v-checkbox v-model="negrita" label="Negrita"></v-checkbox>
@@ -135,7 +144,7 @@
         <v-dialog v-model="dialog" width="auto">
             <v-card>
                 <v-card-text>
-                    <v-color-picker hide-sliders v-model="colortexto" :modes="['hexa']"></v-color-picker>
+                    <v-color-picker v-model="colortexto" :modes="['hexa']"></v-color-picker>
 
                 </v-card-text>
                 <v-card-actions>
@@ -238,10 +247,10 @@ export default {
                 }
             ],
 
-            canalesVisibles:[],
+            canalesVisibles: [],
             tipocorreo: false,
             isAceptado: null,
-            notificacion
+            notificacion: []
         };
 
     },
@@ -254,13 +263,13 @@ export default {
             this.token = JSON.parse(this.token);
 
             console.log(this.token)
-            
+
             this.canalesVisibles.push(this.canales[0])
-           
+
             this.canales.forEach(element => {
-                if(this.token.rol =="Medico" && element.nombre == "Medico"){
+                if (this.token.rol == "Medico" && element.nombre == "Medico") {
                     this.canalesVisibles.push(element)
-                }else if(this.token.rol !="Auxiliar" && this.token.role !="Medico" && element.nombre == this.token.rol){
+                } else if (this.token.rol != "Auxiliar" && this.token.role != "Medico" && element.nombre == this.token.rol) {
                     this.canalesVisibles.push(element)
                 }
             });
@@ -305,7 +314,7 @@ export default {
         });
 
         this.socket.on('notificacion eliminada', (msg) => {
-            console.log("recibido notificcaciona  aeliniads", msg) 
+            console.log("recibido notificcaciona  aeliniads", msg)
             console.log("todas notificaciones", this.notificacion)
             const indice = this.notificacion.findIndex(item => item.nombreemisor === msg.nombreemisor && item.mensaje === msg.mensaje && item.aceptado === msg.aceptado && item.rol === msg.rol && item.escorreo === msg.escorreo);
             console.log("indice", indice)
