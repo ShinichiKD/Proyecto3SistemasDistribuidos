@@ -1,9 +1,9 @@
-import express from "express";
+const express = require("express");
 const router = express.Router();
 
 // importar el modelo nota
-import chatSchema from "../models/chat";
-import mensajeSchema from '../models/mensaje';
+const chatSchema = require('../models/chat');
+const mensajeSchema = require('../models/mensaje');
 router.post("/addchat", async (req, res) => {
   const body = req.body;
   console.log(body);

@@ -1,8 +1,9 @@
-import express from "express";
+const express = require('express');
 const router = express.Router();
 
 // importar el modelo nota
-import usuarioSchema from "../models/usuario";
+const usuarioSchema = require('../models/usuario');
+
 
 router.post("/addUsuario", async (req, res) => {
   const body = req.body;

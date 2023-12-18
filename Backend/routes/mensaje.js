@@ -1,8 +1,9 @@
-import express from "express";
+const express = require("express");
 const router = express.Router();
 
 // importar el modelo nota
-import mensajeSchema from "../models/mensaje";
+const mensajeSchema = require("../models/mensaje");
+
 
 router.get("/getchat/:id1/:id2", async (req, res) => {
   // Obtenemos el id 1
