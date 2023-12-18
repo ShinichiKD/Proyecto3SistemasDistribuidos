@@ -27,6 +27,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
+// Middleware para Vue.js router modo history
+
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Ruta principal que muestra "Hola Mundo"
+app.get('/', (req, res) => {
+    res.send('Hola Mundo');
+});
+
+
 
 app.use('/api', require('./routes/usuario'));
 app.use('/api', require('./routes/mensaje'));
