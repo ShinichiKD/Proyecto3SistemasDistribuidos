@@ -115,7 +115,7 @@
 
                 <!-- Input para enviar mensaje y el boton para enviar -->
                 <div class="flex w-4/5 h-[5vh] mx-auto mt-2">
-                    <v-text-field v-model="mensajeActual" class="flex-grow" label="Escribe pajaron klo"
+                    <v-text-field v-model="mensajeActual" class="flex-grow" label="Escribe un mensaje"
                         hide-details="auto"></v-text-field>
                     <v-btn @click="enviarMensaje" icon>
                         <span class="material-symbols-outlined">
