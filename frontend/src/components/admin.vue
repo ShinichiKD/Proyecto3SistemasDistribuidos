@@ -57,7 +57,7 @@ export default {
         if (token) {
             token = JSON.parse(token);
             this.yo = token
-            this.socket = io("http://localhost:3000", {
+            this.socket = io("http://34.176.49.167:3000", {
                 query: {
                     userID: token._id,
                     username: token.nombre

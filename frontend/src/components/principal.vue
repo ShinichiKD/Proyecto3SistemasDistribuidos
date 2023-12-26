@@ -307,49 +307,10 @@ export default {
       notificacion: [],
     };
   },
+  created() {
+    this.conectarsocket();
+  },
   mounted() {
-    // Obtener el token
-    this.seleccionarCanal(this.canales[0]);
-    this.token = localStorage.getItem("usuario");
-
-    if (this.token) {
-      this.token = JSON.parse(this.token);
-
-      console.log(this.token);
-
-      this.canalesVisibles.push(this.canales[0]);
-
-      this.canales.forEach((element) => {
-        if (this.token.rol == "Medico" && element.nombre == "Medico") {
-          this.canalesVisibles.push(element);
-        } else if (
-          this.token.rol != "Auxiliar" &&
-          this.token.role != "Medico" &&
-          element.nombre == this.token.rol
-        ) {
-          this.canalesVisibles.push(element);
-        }
-      });
-      this.canalesVisibles.push(this.canales[4]);
-
-      if (this.token.rol == "Auxiliar") {
-        this.esAuxiliar = true;
-      } else {
-        this.esAuxiliar = false;
-      }
-
-      this.socket = io("http://localhost:3000", {
-        query: {
-          userID: this.token._id,
-          username: this.token.nombre,
-        },
-      });
-    } else {
-      // Manejar la falta del token o redirigir al usuario a la página de inicio de sesión
-      console.error("No token found! Redirecting to login...");
-      // Redirige al usuario o muestra un mensaje de error
-    }
-
     this.socket.on("chat message", (msg) => {
       this.mensajes.push(msg.mensaje);
 
@@ -400,6 +361,60 @@ export default {
     });
   },
   methods: {
+    conectarsocket() {
+      // Obtener el token
+      this.seleccionarCanal(this.canales[0]);
+      this.token = localStorage.getItem("usuario");
+
+      if (this.token) {
+        this.token = JSON.parse(this.token);
+
+        console.log(this.token);
+
+        this.canalesVisibles.push(this.canales[0]);
+
+        this.canales.forEach((element) => {
+          if (this.token.rol == "Medico" && element.nombre == "Medico") {
+            this.canalesVisibles.push(element);
+          } else if (
+            this.token.rol != "Auxiliar" &&
+            this.token.role != "Medico" &&
+            element.nombre == this.token.rol
+          ) {
+            this.canalesVisibles.push(element);
+          }
+        });
+        this.canalesVisibles.push(this.canales[4]);
+
+        if (this.token.rol == "Auxiliar") {
+          this.esAuxiliar = true;
+        } else {
+          this.esAuxiliar = false;
+        }
+        console.log(this.token._id);
+        console.log(this.token.nombre);
+        this.socket = io("http://34.170.61.29:3000/", {
+          query: {
+            userID: this.token._id,
+            username: this.token.nombre,
+          },
+          transports: ['websocket'],
+          reconnection: true,
+          reconnectionAttempts: Infinity,
+          reconnectionDelay: 1000,
+          reconnectionDelayMax: 5000,
+          randomizationFactor: 0.5,
+        });
+        this.socket.on("connect_error", (err) => {
+            console.log(err.message); // prints the message associated with the error
+            this.$store.state.conexion = false;
+        })
+      } else {
+        // Manejar la falta del token o redirigir al usuario a la página de inicio de sesión
+        console.error("No token found! Redirecting to login...");
+        // Redirige al usuario o muestra un mensaje de error
+      }
+    },
     realizarPeticion(notificacion, accion) {
       this.socket.emit("notificacion eliminada", notificacion);
       if (accion) {

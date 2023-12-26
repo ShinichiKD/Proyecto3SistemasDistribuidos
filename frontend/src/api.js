@@ -2,7 +2,7 @@ import axios from "axios";
 
 // TIENEN QUE CAMBIARLO CON SU NETWORK PARA QUE FUNCIONE EN CELU, SINO NO FUNCA XD
 
-const url = "http://34.176.175.11/api/";
+const url = "http://34.170.61.29:8080/api/";
 
 export default class API {
   //LLAMADAS USUARIO
@@ -16,7 +16,9 @@ export default class API {
   }
   static async login(data) {
     try {
+      
       const res = await axios.post(url + "login", data);
+      console.log(res.data);
       return res.data;
     } catch (error) {
       return error.response.data;
@@ -57,6 +59,7 @@ export default class API {
   static async getChat(tipo) {
     try {
       const res = await axios.get(url + `getchat/` + tipo);
+      console.log(res.data);
       return res.data;
     } catch (error) {
       return error.response.data;
@@ -65,6 +68,7 @@ export default class API {
   static async getChatPrivados(id1, id2) {
     try {
       const res = await axios.get(url + `getchat/` + id1 + `/` + id2);
+      console.log(res.data);
       return res.data;
     } catch (error) {
       return error.response.data;
